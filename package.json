@@ -1,0 +1,10 @@
+{
+  "name": "banyan",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Banyan · 轻量现代中文 Git 客户端",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

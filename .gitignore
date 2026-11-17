@@ -1,0 +1,15 @@
+# 依赖与构建产物
+node_modules/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/schemas/
+
+# Node sidecar 二进制（109MB，超 GitHub 单文件限制；打包时按平台另行放置）
+desktop/src-tauri/binaries/
+
+# 演示仓库与 bare 远端（本机演示数据，含独立 .git）
+demo/
+
+# 剪影提取的临时预览图
+desktop/silhouette_preview*.png
+
+.DS_Store

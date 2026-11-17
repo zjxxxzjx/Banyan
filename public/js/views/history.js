@@ -224,8 +224,12 @@ export function bind(root, ctx) {
   const newBranchFrom = (from) => promptModal({
     title: '新建分支', label: from ? `基于 ${from}` : '分支名称（基于当前 HEAD）', placeholder: 'feature/xxx',
     onConfirm: async (name) => {
-      try { await api.createBranch(id, name, from); toast(`分支 ${name} 已创建`, 'success'); await ctx.refresh(); }
-      catch (err) { toast(err.message, 'error'); }
+      try {
+        await api.createBranch(id, name, from);
+        await api.checkout(id, name);
+        toast(`分支 ${name} 已创建并切换`, 'success');
+      } catch (err) { toast(err.message, 'error'); }
+      await ctx.refresh();
     },
   });
   const openCompare = async (name) => {

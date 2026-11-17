@@ -29,6 +29,7 @@ const state = {
 };
 
 const $ = (sel) => document.querySelector(sel);
+let lastView = null;
 
 function currentRepo() {
   return state.repos.find((r) => r.id === state.repoId);
@@ -146,6 +147,11 @@ const ctx = {
     renderAll();
   },
   async selectCommit(sha) {
+    if (state.selectedCommit === sha) {
+      state.selectedCommit = null; state.commitDetail = null; state.commitFile = null;
+      renderAll();
+      return;
+    }
     state.selectedCommit = sha;
     state.commitFile = null; state.commitDiffText = '';
     state.commitDetail = null; state.busy.detail = true;
@@ -363,6 +369,8 @@ async function toggleTheme() {
 function renderView() {
   const el = $('#view');
   if (!state.repoId) {
+    lastView = null;
+    el.classList.remove('view-anim');
     el.innerHTML = `
       <div class="empty center" style="flex:1">
         <div class="micro">[Banyan] Local Git Client</div>
@@ -376,6 +384,15 @@ function renderView() {
   const { mod } = VIEWS[state.view];
   el.innerHTML = mod.render(state);
   mod.bind(el, ctx);
+  // 入场动画仅在切换视图时播放，避免每次重渲染都闪一下
+  if (state.view !== lastView) {
+    el.classList.remove('view-anim');
+    void el.offsetWidth;
+    el.classList.add('view-anim');
+  } else {
+    el.classList.remove('view-anim');
+  }
+  lastView = state.view;
 }
 
 function renderAll() {

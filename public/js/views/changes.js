@@ -78,7 +78,7 @@ export function render(state) {
           </div>
         </div>
       </div>
-      <div class="diff-pane">
+      <div class="diff-pane ${sel ? 'has-sel' : ''}">
         <div class="diff-header">${diffHeader}</div>
         <div class="diff-body">${sel ? (state.busy.diff ? '<div class="empty center"><span class="spinner"></span></div>' : renderDiff(state.diffText)) : `<div class="empty"><div class="micro">[Diff] No file selected</div><div class="empty-word">Select.</div><div class="empty-desc">左侧勾选文件即可暂存，点击文件名查看具体改动。</div></div>`}</div>
       </div>

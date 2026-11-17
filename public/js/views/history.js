@@ -45,6 +45,7 @@ export function render(state) {
       detail = `
         <div class="commit-detail">
           <div class="detail-head">
+            <button class="icon-btn detail-close" data-act="close-detail" title="关闭详情">${icon('x', 14, 2)}</button>
             <div class="detail-subject">${esc(d.subject)}</div>
             <div class="detail-meta">
               <span>${icon('user', 12)} ${esc(d.author)} &lt;${esc(d.email)}&gt;</span>
@@ -150,6 +151,7 @@ export function bind(root, ctx) {
     state.log = [...state.log, ...more];
     ctx.renderAll();
   });
+  root.querySelector('[data-act="close-detail"]')?.addEventListener('click', () => ctx.selectCommit(state.selectedCommit));
   root.querySelector('[data-act="copy-sha"]')?.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(state.commitDetail.sha);

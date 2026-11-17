@@ -133,15 +133,16 @@ export function outputModal(title, output, ok) {
 }
 
 export function refBadge(ref, remoteNames = []) {
+  const label = (t) => `<span class="badge-label">${esc(t)}</span>`;
   if (ref.startsWith('HEAD -> ')) {
-    return `<span class="badge-ref head">${icon('branch', 11, 2)} ${esc(ref.slice(8))}</span>`;
+    return `<span class="badge-ref head" title="${esc(ref)}">${icon('branch', 11, 2)} ${label(ref.slice(8))}</span>`;
   }
-  if (ref === 'HEAD') return `<span class="badge-ref head">${icon('branch', 11, 2)} HEAD</span>`;
+  if (ref === 'HEAD') return `<span class="badge-ref head" title="HEAD">${icon('branch', 11, 2)} ${label('HEAD')}</span>`;
   if (ref.startsWith('tag: ')) {
-    return `<span class="badge-ref tag">${icon('tag', 11, 2)} ${esc(ref.slice(5))}</span>`;
+    return `<span class="badge-ref tag" title="${esc(ref)}">${icon('tag', 11, 2)} ${label(ref.slice(5))}</span>`;
   }
   const isRemote = remoteNames.some((r) => ref.startsWith(`${r}/`));
-  return `<span class="badge-ref ${isRemote ? 'remote' : ''}">${esc(ref)}</span>`;
+  return `<span class="badge-ref ${isRemote ? 'remote' : ''}" title="${esc(ref)}">${label(ref)}</span>`;
 }
 
 // 右键上下文菜单：items = [{label, icon, hint, disabled, danger, onClick}] 或 '-' 分隔线

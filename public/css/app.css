@@ -177,7 +177,7 @@ body {
 .identity { font-family: var(--mono); font-size: 10.5px; color: var(--fg-3); display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; letter-spacing: 0.02em; }
 
 #view { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-#view > * { animation: view-in 0.5s var(--ease-out); }
+#view.view-anim > * { animation: view-in 0.35s var(--ease-out); }
 @keyframes view-in { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
 
 /* ============ 按钮 ============ */
@@ -300,12 +300,14 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 .seg button:hover:not(.active) { background: var(--fill-3); color: var(--fg); }
 
 .badge-ref {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px; min-width: 0;
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.02em;
   padding: 2px 8px; border-radius: 2px;
   border: 1px solid var(--line); color: var(--fg-2);
-  max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 220px; overflow: hidden; white-space: nowrap;
 }
+.badge-ref .badge-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.commit-refs .badge-ref { flex: 0 1 auto; }
 .badge-ref.head { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .badge-ref.tag { color: var(--fg-2); border-style: dashed; }
 .badge-ref.remote { opacity: 0.65; }
@@ -460,7 +462,8 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
   width: 470px; flex-shrink: 0; border-left: 1px solid var(--line);
   display: flex; flex-direction: column; min-height: 0;
 }
-.detail-head { padding: 22px 24px; border-bottom: 1px solid var(--line); }
+.detail-head { padding: 22px 24px; border-bottom: 1px solid var(--line); position: relative; }
+.detail-close { position: absolute; top: 14px; right: 14px; }
 .detail-subject { font-size: 16px; font-weight: 600; margin-bottom: 12px; line-height: 1.35; letter-spacing: -0.02em; }
 .detail-meta { font-family: var(--mono); font-size: 10.5px; color: var(--fg-2); display: flex; flex-direction: column; gap: 6px; letter-spacing: 0.02em; }
 .detail-meta span { display: inline-flex; align-items: center; gap: 8px; }
@@ -558,6 +561,20 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============ 响应式 ============ */
+@media (max-width: 1200px) {
+  .history-tree { width: 210px; }
+  .commit-detail { width: 360px; }
+  .changes-left { width: 220px; }
+}
+@media (max-width: 1000px) {
+  .history-layout, .changes-layout { position: relative; }
+  .commit-detail, .diff-pane.has-sel {
+    position: absolute; top: 0; right: 0; bottom: 0; z-index: 6;
+    width: min(430px, 62%); background: var(--bg);
+    border-left: 1px solid var(--line); box-shadow: -14px 0 34px rgba(0, 0, 0, 0.45);
+  }
+  .diff-pane:not(.has-sel) { display: none; }
+}
 @media (max-width: 900px) {
   #sidebar { width: 58px; padding-top: 16px; }
   .topbar-logo .logo-name { display: none; }
@@ -576,7 +593,10 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
   .changes-left { width: 100%; max-height: 46%; border-right: none; border-bottom: 1px solid var(--line); }
   .history-layout { flex-direction: column; }
   .history-tree { display: none; }
-  .commit-detail { width: 100%; max-height: 50%; border-left: none; border-top: 1px solid var(--line); }
+  .commit-detail, .diff-pane.has-sel {
+    position: static; width: 100%; max-height: 50%;
+    box-shadow: none; border-left: none; border-top: 1px solid var(--line);
+  }
   .commit-row, .history-cols { grid-template-columns: var(--gw) minmax(0,1fr) 132px; }
   .commit-author, .history-cols span:nth-child(3) { display: none; }
   .commit-refs { display: none; }

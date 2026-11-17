@@ -402,9 +402,12 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 .history-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .history-toolbar {
   display: flex; align-items: center; gap: 14px; padding: 12px 24px 10px;
-  flex-shrink: 0;
+  flex-shrink: 0; flex-wrap: wrap; row-gap: 8px;
 }
-.history-toolbar input { flex: 0 1 260px; width: 260px; height: 28px; padding: 0 12px; }
+.history-toolbar input { flex: 1 1 180px; width: auto; min-width: 140px; height: 28px; padding: 0 12px; }
+.history-toolbar > .faint { white-space: nowrap; flex-shrink: 0; }
+.history-toolbar > .btn { flex-shrink: 0; }
+.history-toolbar > span[style] { min-width: 0; }
 .history-scroll { flex: 1; overflow: auto; }
 .history-tree {
   width: 250px; flex-shrink: 0; border-right: 1px solid var(--line);
@@ -461,6 +464,7 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 .commit-detail {
   width: 470px; flex-shrink: 0; border-left: 1px solid var(--line);
   display: flex; flex-direction: column; min-height: 0;
+  background: var(--bg);
 }
 .detail-head { padding: 22px 24px; border-bottom: 1px solid var(--line); position: relative; }
 .detail-close { position: absolute; top: 14px; right: 14px; }
@@ -563,10 +567,7 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 /* ============ 响应式 ============ */
 @media (max-width: 1200px) {
   .history-tree { width: 210px; }
-  .commit-detail { width: 360px; }
   .changes-left { width: 220px; }
-}
-@media (max-width: 1000px) {
   .history-layout, .changes-layout { position: relative; }
   .commit-detail, .diff-pane.has-sel {
     position: absolute; top: 0; right: 0; bottom: 0; z-index: 6;
@@ -584,7 +585,7 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
   .nav-item .nav-dot { margin-left: 0; position: absolute; right: 8px; }
   .nav-item { position: relative; }
   .changes-left { width: 250px; }
-  .commit-detail { width: 340px; }
+  .commit-detail { width: min(360px, 70%); }
   .page { padding: 28px 24px 60px; }
   .page-title { font-size: 32px; }
 }

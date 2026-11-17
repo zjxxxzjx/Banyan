@@ -55,8 +55,8 @@ fn main() {
             .title("Banyan · Git 客户端")
             .title_bar_style(tauri::TitleBarStyle::Overlay)
             .hidden_title(true)
-            // inset 语义：灯位 = 默认位 + inset；实测 inset 15.5 时灯顶 7pt，14pt 灯径居中于 28px 灯条
-            .traffic_light_position(tauri::Position::Logical(tauri::LogicalPosition::new(14.0, 15.5)))
+            // inset 语义：灯位 = 默认位 + inset；实测 inset 18.5 时灯顶 10pt（用户偏好略低于灯条中线）
+            .traffic_light_position(tauri::Position::Logical(tauri::LogicalPosition::new(14.0, 18.5)))
             .inner_size(1280.0, 820.0)
             .min_inner_size(960.0, 600.0)
             .build()?;

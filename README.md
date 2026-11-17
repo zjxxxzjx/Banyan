@@ -55,6 +55,16 @@ npm run build        # → src-tauri/target/release/bundle/dmg/Banyan_<ver>_aarc
 > The sidecar binary (~100 MB) is intentionally **not** committed to this repository.
 > In mainland China networks, `rsproxy.cn` is a reliable crates mirror if crates.io times out.
 
+### macOS Gatekeeper note
+
+Builds are **ad-hoc signed, not notarized** (no Apple Developer ID yet). If macOS reports the app as "damaged" or says it cannot verify the developer — typical after downloading or transferring via chat apps, which attach a quarantine attribute — clear the attribute and open again:
+
+```bash
+xattr -cr /Applications/Banyan.app
+```
+
+Notarized, Developer-ID-signed releases are on the roadmap.
+
 ## Development (web mode)
 
 The desktop shell and the browser share the same server and UI:

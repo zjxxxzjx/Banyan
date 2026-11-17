@@ -55,6 +55,16 @@ npm run build        # → src-tauri/target/release/bundle/dmg/Banyan_<ver>_aarc
 > sidecar 二进制（约 100 MB）**不入库**（超 GitHub 单文件限制）。
 > 大陆网络若 crates.io 超时，可使用 `rsproxy.cn` 镜像。
 
+### macOS Gatekeeper 说明
+
+构建为 **ad-hoc 签名、未公证**（尚未配置 Apple Developer ID）。若 macOS 提示「已损坏」或「无法验证开发者」——常见于下载或经聊天工具传输后（会被附加隔离属性）——清除隔离属性后再打开：
+
+```bash
+xattr -cr /Applications/Banyan.app
+```
+
+Developer ID 签名与公证的 Release 已列入路线图。
+
 ## 开发（Web 模式）
 
 桌面壳与浏览器共用同一套服务与界面：

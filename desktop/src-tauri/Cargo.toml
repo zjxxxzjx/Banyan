@@ -1,6 +1,6 @@
 [package]
 name = "banyan"
-version = "0.1.0"
+version = "0.1.1"
 description = "Banyan Git client desktop shell"
 edition = "2021"
 

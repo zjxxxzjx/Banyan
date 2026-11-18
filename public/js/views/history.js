@@ -1,7 +1,7 @@
 import { api } from '../api.js';
-import { esc, toast, fullTime, refBadge, confirmModal, promptModal, outputModal, modal, contextMenu } from '../util.js';
+import { esc, toast, fullTime, refCluster, bindRefClusters, confirmModal, promptModal, outputModal, modal, contextMenu } from '../util.js';
 import { icon } from '../icons.js';
-import { buildGraph, rowSvg } from '../graph.js';
+import { buildGraph, graphSvg } from '../graph.js';
 import { renderDiff } from '../diff.js';
 import { renderTree, bindTree } from './branchtree.js';
 
@@ -18,17 +18,16 @@ export function render(state) {
   const commits = filter
     ? state.log.filter((c) => c.subject.toLowerCase().includes(filter) || c.author.toLowerCase().includes(filter) || c.sha.startsWith(filter))
     : state.log;
-  const graph = buildGraph(commits);
+  const graph = buildGraph(commits, { headSha: state.status?.oid });
   const gw = `${graph.width}px`;
 
   const rows = commits.map((c, i) => {
-    const g = graph.rows[i];
     const selected = state.selectedCommit === c.sha;
     return `
       <div class="commit-row ${selected ? 'selected' : ''}" data-sha="${c.sha}" style="--gw:${gw}">
-        ${rowSvg(g, graph.width)}
+        <span class="commit-graph-cell" style="width:${gw}"></span>
         <div class="commit-cell-main">
-          <span class="commit-refs">${c.refs.map((r) => refBadge(r, remoteNames)).join('')}</span>
+          <span class="commit-refs">${refCluster(c.refs, remoteNames)}</span>
           <span class="commit-subject">${esc(c.subject)}</span>
         </div>
         <span class="commit-author">${esc(c.author)}</span>
@@ -51,7 +50,7 @@ export function render(state) {
               <span>${icon('user', 12)} ${esc(d.author)} &lt;${esc(d.email)}&gt;</span>
               <span>${icon('clock', 12)} ${fullTime(d.time)}</span>
               <span class="mono" style="cursor:pointer" data-act="copy-sha" title="点击复制完整 SHA">${icon('key', 12)} ${d.sha}</span>
-              ${d.refs.length ? `<span style="display:flex;gap:4px;flex-wrap:wrap">${d.refs.map((r) => refBadge(r, remoteNames)).join('')}</span>` : ''}
+              ${d.refs.length ? `<span class="commit-refs">${refCluster(d.refs, remoteNames)}</span>` : ''}
             </div>
             ${d.body ? `<div class="detail-body-text">${esc(d.body)}</div>` : ''}
           </div>
@@ -88,7 +87,7 @@ export function render(state) {
         </div>
         <div class="history-cols micro" style="--gw:${gw}"><span></span><span>提交</span><span>作者</span><span>时间</span></div>
         <div class="history-scroll">
-          ${commits.length ? rows : `<div class="empty"><div class="micro">[History] Empty</div><div class="empty-word">History.</div><div class="empty-desc">在「变更」页完成第一次提交后，这里会展示提交历史图。</div></div>`}
+          ${commits.length ? `<div class="history-rows">${graphSvg(graph)}${rows}</div>` : `<div class="empty"><div class="micro">[History] Empty</div><div class="empty-word">History.</div><div class="empty-desc">在「变更」页完成第一次提交后，这里会展示提交历史图。</div></div>`}
           ${!filter && state.log.length >= state.logLimit ? '<div class="load-more"><button class="btn" data-act="load-more">加载更多</button></div>' : ''}
         </div>
       </div>
@@ -99,6 +98,7 @@ export function render(state) {
 export function bind(root, ctx) {
   const { state } = ctx;
   const id = state.repoId;
+  bindRefClusters(root);
 
   bindTree(root, ctx, {
     onSelect: async (name) => {

@@ -132,17 +132,44 @@ export function outputModal(title, output, ok) {
   });
 }
 
-export function refBadge(ref, remoteNames = []) {
-  const label = (t) => `<span class="badge-label">${esc(t)}</span>`;
-  if (ref.startsWith('HEAD -> ')) {
-    return `<span class="badge-ref head" title="${esc(ref)}">${icon('branch', 11, 2)} ${label(ref.slice(8))}</span>`;
-  }
-  if (ref === 'HEAD') return `<span class="badge-ref head" title="HEAD">${icon('branch', 11, 2)} ${label('HEAD')}</span>`;
-  if (ref.startsWith('tag: ')) {
-    return `<span class="badge-ref tag" title="${esc(ref)}">${icon('tag', 11, 2)} ${label(ref.slice(5))}</span>`;
-  }
-  const isRemote = remoteNames.some((r) => ref.startsWith(`${r}/`));
-  return `<span class="badge-ref ${isRemote ? 'remote' : ''}" title="${esc(ref)}">${label(ref)}</span>`;
+// PyCharm 式 refs 彩色标签簇：类型着色小 tag 图标 + 精简摘要，悬浮罗列全名
+export function refMeta(ref, remoteNames = []) {
+  if (ref === 'HEAD' || ref.startsWith('HEAD -> ')) return { kind: 'head', label: 'HEAD', full: ref === 'HEAD' ? 'HEAD' : ref.slice(8) };
+  if (ref.startsWith('tag: ')) return { kind: 'tag', label: ref.slice(5), full: ref.slice(5) };
+  const r = remoteNames.find((n) => ref.startsWith(`${n}/`));
+  if (r) return { kind: 'remote', label: r, full: ref };
+  return { kind: 'local', label: ref, full: ref };
+}
+
+export function refCluster(refs, remoteNames = []) {
+  if (!refs.length) return '';
+  const metas = refs.map((r) => refMeta(r, remoteNames));
+  const icons = metas.map((m) => `<span class="ref-ic ${m.kind}">${icon('tag', 12, 2)}</span>`).join('');
+  const names = [...new Set(metas.filter((m) => m.kind !== 'head').map((m) => m.label))].join(' & ');
+  return `<span class="ref-cluster" data-refs="${esc(JSON.stringify(metas))}">${icons}<span class="ref-names">${esc(names)}</span></span>`;
+}
+
+let refPop = null;
+function hideRefPop() {
+  refPop?.remove();
+  refPop = null;
+}
+export function bindRefClusters(root) {
+  root.querySelectorAll('.ref-cluster').forEach((el) => {
+    el.addEventListener('mouseenter', () => {
+      hideRefPop();
+      const metas = JSON.parse(el.dataset.refs);
+      refPop = document.createElement('div');
+      refPop.className = 'ref-pop';
+      refPop.innerHTML = metas.map((m) => `<span class="ref-pop-row"><span class="ref-ic ${m.kind}">${icon('tag', 12, 2)}</span>${esc(m.full)}</span>`).join('');
+      document.body.appendChild(refPop);
+      const b = el.getBoundingClientRect();
+      const pb = refPop.getBoundingClientRect();
+      refPop.style.left = `${Math.max(8, Math.min(b.x, innerWidth - pb.width - 8))}px`;
+      refPop.style.top = `${b.bottom + 6 + pb.height > innerHeight ? b.top - pb.height - 6 : b.bottom + 6}px`;
+    });
+    el.addEventListener('mouseleave', hideRefPop);
+  });
 }
 
 // 右键上下文菜单：items = [{label, icon, hint, disabled, danger, onClick}] 或 '-' 分隔线

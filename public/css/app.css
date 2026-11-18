@@ -32,6 +32,10 @@
   --lane-4: #ff9d5c;
   --lane-5: #c792ea;
   --lane-6: #56d4dd;
+  --ref-head: #e8c15a;
+  --ref-local: #7fd07f;
+  --ref-remote: #c792ea;
+  --ref-tag: #56d4dd;
   --add: #9fd6ae;
   --add-bg: rgba(159, 214, 174, 0.07);
   --del: #e5a0a0;
@@ -63,6 +67,10 @@
   --lane-4: #ea580c;
   --lane-5: #9333ea;
   --lane-6: #0891b2;
+  --ref-head: #a07800;
+  --ref-local: #16a34a;
+  --ref-remote: #9333ea;
+  --ref-tag: #0891b2;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -311,6 +319,19 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 .badge-ref.head { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .badge-ref.tag { color: var(--fg-2); border-style: dashed; }
 .badge-ref.remote { opacity: 0.65; }
+.ref-cluster { display: inline-flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; cursor: default; }
+.ref-ic { display: inline-flex; flex-shrink: 0; }
+.ref-ic.head { color: var(--ref-head); }
+.ref-ic.local { color: var(--ref-local); }
+.ref-ic.remote { color: var(--ref-remote); }
+.ref-ic.tag { color: var(--ref-tag); }
+.ref-names { font-family: var(--mono); font-size: 10px; color: var(--fg-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ref-pop {
+  position: fixed; z-index: 1000; display: flex; flex-direction: column; gap: 6px;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 4px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); padding: 8px 12px;
+}
+.ref-pop-row { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--fg-2); white-space: nowrap; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
 /* ============ 空状态（type-driven） ============ */
@@ -425,7 +446,9 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 }
 .commit-row:hover { background: var(--fill-3); }
 .commit-row.selected { background: var(--fill-3); box-shadow: inset 2px 0 0 var(--fg); }
-.commit-graph { flex-shrink: 0; height: 44px; }
+.commit-graph-cell { flex-shrink: 0; }
+.history-rows { position: relative; }
+.commit-graph-overlay { position: absolute; left: 0; top: 0; pointer-events: none; }
 .commit-cell-main { display: flex; align-items: center; gap: 8px; min-width: 0; padding-right: 16px; }
 .commit-subject { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 12.5px; letter-spacing: -0.01em; min-width: 0; flex: 0 1 auto; }
 .commit-refs { display: flex; gap: 4px; flex-shrink: 1; min-width: 0; overflow: hidden; }

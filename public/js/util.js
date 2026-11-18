@@ -144,7 +144,7 @@ export function refMeta(ref, remoteNames = []) {
 export function refCluster(refs, remoteNames = []) {
   if (!refs.length) return '';
   const metas = refs.map((r) => refMeta(r, remoteNames));
-  const icons = metas.map((m) => `<span class="ref-ic ${m.kind}">${icon('tag', 12, 2)}</span>`).join('');
+  const icons = metas.map((m) => `<span class="ref-ic ${m.kind}">${icon('tag', 13, 1.7)}</span>`).join('');
   return `<span class="ref-cluster" data-refs="${esc(JSON.stringify(metas))}">${icons}</span>`;
 }
 

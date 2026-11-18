@@ -322,6 +322,10 @@ label.check input { accent-color: var(--fg); width: 13px; height: 13px; }
 .ref-cluster { display: inline-flex; align-items: center; cursor: default; }
 .ref-ic { display: inline-flex; flex-shrink: 0; }
 .ref-ic + .ref-ic { margin-left: -6px; }
+/* 不透明内底：重叠时前图标遮住后图标，避免描边互相透视 */
+.ref-ic svg path { fill: var(--bg); }
+.ref-ic svg circle { fill: currentColor; stroke: none; }
+.ref-pop .ref-ic svg path { fill: var(--bg-2); }
 .ref-ic.head { color: var(--ref-head); }
 .ref-ic.local { color: var(--ref-local); }
 .ref-ic.remote { color: var(--ref-remote); }

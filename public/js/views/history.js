@@ -27,8 +27,8 @@ export function render(state) {
       <div class="commit-row ${selected ? 'selected' : ''}" data-sha="${c.sha}" style="--gw:${gw}">
         <span class="commit-graph-cell" style="width:${gw}"></span>
         <div class="commit-cell-main">
-          <span class="commit-refs">${refCluster(c.refs, remoteNames)}</span>
           <span class="commit-subject">${esc(c.subject)}</span>
+          <span class="commit-refs">${refCluster(c.refs, remoteNames)}</span>
         </div>
         <span class="commit-author">${esc(c.author)}</span>
         <span class="commit-time">${fullTime(c.time)}</span>
@@ -45,12 +45,11 @@ export function render(state) {
         <div class="commit-detail">
           <div class="detail-head">
             <button class="icon-btn detail-close" data-act="close-detail" title="关闭详情">${icon('x', 14, 2)}</button>
-            <div class="detail-subject">${esc(d.subject)}</div>
+            <div class="detail-subject">${esc(d.subject)} <span class="commit-refs">${refCluster(d.refs, remoteNames)}</span></div>
             <div class="detail-meta">
               <span>${icon('user', 12)} ${esc(d.author)} &lt;${esc(d.email)}&gt;</span>
               <span>${icon('clock', 12)} ${fullTime(d.time)}</span>
               <span class="mono" style="cursor:pointer" data-act="copy-sha" title="点击复制完整 SHA">${icon('key', 12)} ${d.sha}</span>
-              ${d.refs.length ? `<span class="commit-refs">${refCluster(d.refs, remoteNames)}</span>` : ''}
             </div>
             ${d.body ? `<div class="detail-body-text">${esc(d.body)}</div>` : ''}
           </div>

@@ -64,32 +64,36 @@ const MID = ROW_H / 2;
 
 export function rowSvg(row, width) {
   const parts = [];
+  const line = (x1, y1, x2, y2, color) =>
+    parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2"/>`);
+  const curve = (x0, y0, x1, y1, color) =>
+    parts.push(`<path d="M ${x0} ${y0} C ${x0} ${y0 + (y1 - y0) * 0.6}, ${x1} ${y1 - (y1 - y0) * 0.4}, ${x1} ${y1}" fill="none" stroke="${color}" stroke-width="2"/>`);
+  const topLanes = new Set(row.top.map((t) => t.lane));
+  const dupLanes = new Set(row.dups.map((d) => d.lane));
+  // 父提交泳道在本行上方已存在：泳道整行贯通，合并曲线在行中汇入（PyCharm 语义，避免断头线）
+  const mergeIn = new Set(row.edges.filter((e) => e.to !== row.lane && topLanes.has(e.to)).map((e) => e.to));
   const edgeTargets = new Set(row.edges.map((e) => e.to));
-  // 上半段：进入本行的竖线
+
+  // 上半段：进入本行的竖线；mergeIn 泳道直接贯通整行
   for (const t of row.top) {
-    if (t.lane === row.lane) {
-      parts.push(`<line x1="${x(t.lane)}" y1="0" x2="${x(t.lane)}" y2="${MID}" stroke="${t.color}" stroke-width="2"/>`);
-    } else if (!row.dups.some((d) => d.lane === t.lane)) {
-      parts.push(`<line x1="${x(t.lane)}" y1="0" x2="${x(t.lane)}" y2="${MID}" stroke="${t.color}" stroke-width="2"/>`);
-    }
+    if (dupLanes.has(t.lane)) continue;
+    if (mergeIn.has(t.lane)) line(x(t.lane), 0, x(t.lane), ROW_H, t.color);
+    else line(x(t.lane), 0, x(t.lane), MID, t.color);
   }
-  // 并入的分支曲线
+  // 并入本提交后消亡的泳道曲线
   for (const d of row.dups) {
     parts.push(`<path d="M ${x(d.lane)} 0 C ${x(d.lane)} ${MID * 0.7}, ${x(row.lane)} ${MID * 0.4}, ${x(row.lane)} ${MID}" fill="none" stroke="${d.color}" stroke-width="2"/>`);
   }
-  // 下半段：延续的竖线（父提交连线单独画）
+  // 下半段：延续竖线（新父泳道由曲线覆盖、mergeIn 已贯通、首父由 edges 画）
   for (const b of row.bottom) {
-    if (!edgeTargets.has(b.lane)) {
-      parts.push(`<line x1="${x(b.lane)}" y1="${MID}" x2="${x(b.lane)}" y2="${ROW_H}" stroke="${b.color}" stroke-width="2"/>`);
-    }
+    if (edgeTargets.has(b.lane) || mergeIn.has(b.lane)) continue;
+    line(x(b.lane), MID, x(b.lane), ROW_H, b.color);
   }
   // 指向父提交的连线
   for (const e of row.edges) {
-    if (e.to === row.lane) {
-      parts.push(`<line x1="${x(row.lane)}" y1="${MID}" x2="${x(e.to)}" y2="${ROW_H}" stroke="${e.color}" stroke-width="2"/>`);
-    } else {
-      parts.push(`<path d="M ${x(row.lane)} ${MID} C ${x(row.lane)} ${MID + (ROW_H - MID) * 0.6}, ${x(e.to)} ${MID + (ROW_H - MID) * 0.4}, ${x(e.to)} ${ROW_H}" fill="none" stroke="${e.color}" stroke-width="2"/>`);
-    }
+    if (e.to === row.lane) line(x(row.lane), MID, x(e.to), ROW_H, e.color);
+    else if (mergeIn.has(e.to)) curve(x(row.lane), MID, x(e.to), MID, e.color);
+    else curve(x(row.lane), MID, x(e.to), ROW_H, e.color);
   }
   // 提交圆点
   const cx = x(row.lane);

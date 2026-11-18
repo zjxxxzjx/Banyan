@@ -1,4 +1,5 @@
 import { icon } from './icons.js';
+import { t } from './i18n.js';
 
 export function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -10,15 +11,15 @@ export function timeAgo(ts) {
   if (!ts) return '';
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
-  if (m < 1) return '刚刚';
-  if (m < 60) return `${m} 分钟前`;
+  if (m < 1) return t('刚刚');
+  if (m < 60) return t('{0} 分钟前', m);
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h} 小时前`;
+  if (h < 24) return t('{0} 小时前', h);
   const d = Math.floor(h / 24);
-  if (d < 30) return `${d} 天前`;
+  if (d < 30) return t('{0} 天前', d);
   const mo = Math.floor(d / 30);
-  if (mo < 12) return `${mo} 个月前`;
-  return `${Math.floor(mo / 12)} 年前`;
+  if (mo < 12) return t('{0} 个月前', mo);
+  return t('{0} 年前', Math.floor(mo / 12));
 }
 
 export function fullTime(ts) {
@@ -82,12 +83,12 @@ export function modal({ title, body, actions = [], wide = false }) {
   return { close, mask };
 }
 
-export function confirmModal({ title, message, confirmLabel = '确认', danger = false, onConfirm }) {
+export function confirmModal({ title, message, confirmLabel = t('确认'), danger = false, onConfirm }) {
   modal({
     title,
     body: `<div>${message}</div>`,
     actions: [
-      { label: '取消', kind: 'ghost', onClick: (close) => close() },
+      { label: t('取消'), kind: 'ghost', onClick: (close) => close() },
       {
         label: confirmLabel, kind: danger ? 'danger' : 'primary',
         onClick: async (close) => { close(); await onConfirm(); },
@@ -97,7 +98,7 @@ export function confirmModal({ title, message, confirmLabel = '确认', danger =
 }
 
 // 带输入框的模态框
-export function promptModal({ title, label, placeholder = '', value = '', confirmLabel = '确定', onConfirm }) {
+export function promptModal({ title, label, placeholder = '', value = '', confirmLabel = t('确定'), onConfirm }) {
   const { mask } = modal({
     title,
     body: `
@@ -106,12 +107,12 @@ export function promptModal({ title, label, placeholder = '', value = '', confir
         <input type="text" id="modal-input" placeholder="${esc(placeholder)}" value="${esc(value)}">
       </div>`,
     actions: [
-      { label: '取消', kind: 'ghost', onClick: (close) => close() },
+      { label: t('取消'), kind: 'ghost', onClick: (close) => close() },
       {
         label: confirmLabel, kind: 'primary',
         onClick: async (close) => {
           const v = mask.querySelector('#modal-input').value.trim();
-          if (!v) { toast('内容不能为空', 'error'); return; }
+          if (!v) { toast(t('内容不能为空'), 'error'); return; }
           close();
           await onConfirm(v);
         },
@@ -125,10 +126,10 @@ export function promptModal({ title, label, placeholder = '', value = '', confir
 
 export function outputModal(title, output, ok) {
   modal({
-    title: `${title} ${ok ? '完成' : '失败'}`,
+    title: `${title} ${ok ? t('完成') : t('失败')}`,
     wide: true,
-    body: `<pre>${esc(output || '（无输出）')}</pre>`,
-    actions: [{ label: '关闭', kind: 'primary', onClick: (close) => close() }],
+    body: `<pre>${esc(output || t('（无输出）'))}</pre>`,
+    actions: [{ label: t('关闭'), kind: 'primary', onClick: (close) => close() }],
   });
 }
 

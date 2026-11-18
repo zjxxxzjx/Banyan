@@ -47,19 +47,21 @@ fn main() {
                 return Ok(());
             }
 
-            tauri::WebviewWindowBuilder::new(
+            let builder = tauri::WebviewWindowBuilder::new(
                 app,
                 "main",
                 tauri::WebviewUrl::External(format!("http://127.0.0.1:{port}").parse()?),
             )
             .title("Banyan · Git 客户端")
-            .title_bar_style(tauri::TitleBarStyle::Overlay)
-            .hidden_title(true)
-            // inset 语义：灯位 = 默认位 + inset；实测 inset 18.5 时灯顶 10pt（用户偏好略低于灯条中线）
-            .traffic_light_position(tauri::Position::Logical(tauri::LogicalPosition::new(14.0, 18.5)))
             .inner_size(1280.0, 820.0)
-            .min_inner_size(960.0, 600.0)
-            .build()?;
+            .min_inner_size(960.0, 600.0);
+            // macOS 专属：overlay 标题栏 + 红绿灯 inset（28px 灯条居中）
+            #[cfg(target_os = "macos")]
+            let builder = builder
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .hidden_title(true)
+                .traffic_light_position(tauri::Position::Logical(tauri::LogicalPosition::new(14.0, 18.5)));
+            builder.build()?;
 
             app.manage(SidecarChild(Mutex::new(Some(child))));
             tauri::async_runtime::spawn(async move {

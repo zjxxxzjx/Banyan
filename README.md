@@ -43,10 +43,8 @@ Prebuilt releases are planned. For now, build from source (macOS 10.15+):
 
 ```bash
 # 1. Prerequisites: Node.js >= 18 (tested on 23), Rust stable (tested on 1.100)
-# 2. Place an official Node binary as the sidecar for your target:
-#    desktop/src-tauri/binaries/node-aarch64-apple-darwin      (Apple Silicon)
-#    desktop/src-tauri/binaries/node-x86_64-apple-darwin       (Intel)
-#    desktop/src-tauri/binaries/node-x86_64-pc-windows-msvc.exe (Windows, planned)
+# 2. Fetch the official Node binary used as the desktop sidecar:
+bash scripts/fetch-sidecar.sh          # places desktop/src-tauri/binaries/node-<target-triple>
 cd desktop
 npm install
 npm run build        # → src-tauri/target/release/bundle/dmg/Banyan_<ver>_aarch64.dmg
@@ -64,6 +62,16 @@ xattr -cr /Applications/Banyan.app
 ```
 
 Notarized, Developer-ID-signed releases are on the roadmap.
+
+### macOS privacy prompt repeats after each update
+
+macOS ties folder-access grants (Desktop / Documents / Downloads) to the app's code signature. Ad-hoc signatures change with every build, so each new version asks once for access to the folders your repositories live in. This is expected, not a loop: approve once per version. A stable self-signed identity or a notarized Developer ID build removes the repetition (roadmap).
+
+## Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) — version history
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — layers, sidecar lifecycle, graph algorithm, signing
+- [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
 
 ## Development (web mode)
 

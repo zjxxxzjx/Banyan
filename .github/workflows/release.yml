@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Fetch Node sidecar
+        run: bash scripts/fetch-sidecar.sh
+      - name: Use Developer ID signing when secrets provided
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        if: env.APPLE_SIGNING_IDENTITY != ''
+        run: |
+          echo "$APPLE_CERTIFICATE" | base64 --decode > /tmp/cert.p12
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import /tmp/cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          python3 - <<'EOF'
+          import json, os, pathlib
+          p = pathlib.Path('desktop/src-tauri/tauri.conf.json')
+          d = json.loads(p.read_text())
+          d['bundle']['macOS']['signingIdentity'] = os.environ['APPLE_SIGNING_IDENTITY']
+          p.write_text(json.dumps(d, indent=2))
+          EOF
+      - name: Build dmg
+        run: |
+          cd desktop
+          npm install
+          npx tauri build
+      - name: Notarize when Apple credentials provided
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        if: env.APPLE_ID != ''
+        run: |
+          DMG=$(ls desktop/src-tauri/target/release/bundle/dmg/*.dmg | head -1)
+          xcrun notarytool submit "$DMG" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          xcrun stapler staple "$DMG"
+      - name: Attach to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          body: |
+            See [CHANGELOG.md](https://github.com/zjxxxzjx/Banyan/blob/master/CHANGELOG.md).
+            Unsigned builds: if macOS reports "damaged" or an unverified developer, run
+            `xattr -cr /Applications/Banyan.app` after installing (see README).

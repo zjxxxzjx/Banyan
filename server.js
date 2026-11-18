@@ -6,6 +6,10 @@ import { fileURLToPath } from 'node:url';
 import * as G from './lib/git.js';
 import * as store from './lib/store.js';
 import { generateCommitMessage, testConnection } from './lib/ai.js';
+import { t, setLang } from './public/js/i18n.js';
+
+// 参数/校验类错误统一 400，区别于内部错误 500
+const bad = (m) => Object.assign(new Error(m), { http: 400 });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // TCC 挂起的 stat 会占用 libuv 线程池，加大池避免浏览目录时耗尽
@@ -35,12 +39,12 @@ async function readBody(req) {
   let size = 0;
   for await (const c of req) {
     size += c.length;
-    if (size > 2 * 1024 * 1024) throw new Error('请求体过大');
+    if (size > 2 * 1024 * 1024) throw bad(t('请求体过大'));
     chunks.push(c);
   }
   if (!chunks.length) return {};
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); }
-  catch { throw new Error('请求体不是合法 JSON'); }
+  catch { throw bad(t('请求体不是合法 JSON')); }
 }
 
 // 路由表：[方法, 路径正则, 处理器(req, res, params, query, body)]
@@ -61,7 +65,7 @@ route('GET', '/api/repos', async (req, res) => {
 });
 
 route('POST', '/api/repos', async (req, res, p, q, body) => {
-  if (!body.path) throw new Error('缺少 path');
+  if (!body.path) throw bad(t('缺少 path'));
   const top = await G.resolveRepo(body.path);
   const repo = await store.addRepo(top, path.basename(top));
   json(res, 200, repo);
@@ -96,13 +100,13 @@ route('POST', '/api/repos/([^/]+)/unstage', async (req, res, p, q, body) => {
 });
 
 route('POST', '/api/repos/([^/]+)/discard', async (req, res, p, q, body) => {
-  if (body.confirm !== true) throw new Error('丢弃更改需要确认');
+  if (body.confirm !== true) throw bad(t('丢弃更改需要确认'));
   await withRepo(p[0], (cwd) => G.discard(cwd, body.paths || [], body.untracked || []));
   json(res, 200, { ok: true });
 });
 
 route('POST', '/api/repos/([^/]+)/commit', async (req, res, p, q, body) => {
-  if (!body.message || !body.message.trim()) throw new Error('提交信息不能为空');
+  if (!body.message || !body.message.trim()) throw bad(t('提交信息不能为空'));
   const out = await withRepo(p[0], (cwd) => G.commit(cwd, body.message.trim(), { amend: !!body.amend }));
   json(res, 200, { ok: true, output: out });
 });
@@ -131,7 +135,7 @@ route('GET', '/api/repos/([^/]+)/branches', async (req, res, p) => {
 });
 
 route('POST', '/api/repos/([^/]+)/branches', async (req, res, p, q, body) => {
-  if (!body.name) throw new Error('缺少分支名');
+  if (!body.name) throw bad(t('缺少分支名'));
   await withRepo(p[0], (cwd) => G.createBranch(cwd, body.name, body.from));
   json(res, 200, { ok: true });
 });
@@ -144,7 +148,7 @@ route('POST', '/api/repos/([^/]+)/checkout', async (req, res, p, q, body) => {
 route('DELETE', '/api/repos/([^/]+)/branches', async (req, res, p, q) => {
   const force = q.get('force') === '1';
   const remote = q.get('remote') === '1';
-  if (force && q.get('confirm') !== '1') throw new Error('强制删除需要确认');
+  if (force && q.get('confirm') !== '1') throw bad(t('强制删除需要确认'));
   await withRepo(p[0], (cwd) => G.deleteBranch(cwd, q.get('name'), { force, remote }));
   json(res, 200, { ok: true });
 });
@@ -179,32 +183,36 @@ route('POST', '/api/repos/([^/]+)/stash-op', async (req, res, p, q, body) => {
 });
 
 route('POST', '/api/repos/([^/]+)/rebase', async (req, res, p, q, body) => {
-  if (!body.onto) throw new Error('缺少变基目标');
+  if (!body.onto) throw bad(t('缺少变基目标'));
   const r = await withRepo(p[0], (cwd) => G.rebase(cwd, body.onto));
   json(res, 200, { ok: r.ok, output: r.stdout + r.stderr });
 });
 
 route('GET', '/api/repos/([^/]+)/compare', async (req, res, p, q) => {
   const branch = q.get('branch');
-  if (!branch) throw new Error('缺少分支名');
+  if (!branch) throw bad(t('缺少分支名'));
   json(res, 200, await withRepo(p[0], (cwd) => G.compare(cwd, branch)));
 });
 
 route('GET', '/api/repos/([^/]+)/branch-diff', async (req, res, p, q) => {
   const branch = q.get('branch');
-  if (!branch) throw new Error('缺少分支名');
+  if (!branch) throw bad(t('缺少分支名'));
   const diff = await withRepo(p[0], (cwd) => G.branchDiff(cwd, branch, q.get('mode') || 'compare'));
   json(res, 200, { diff });
 });
 
 route('POST', '/api/repos/([^/]+)/push-branch', async (req, res, p, q, body) => {
-  if (!body.name) throw new Error('缺少分支名');
+  if (!body.name) throw bad(t('缺少分支名'));
   const r = await withRepo(p[0], (cwd) => G.pushBranch(cwd, body.name));
   json(res, 200, { ok: r.ok, output: r.stdout + r.stderr });
 });
 
 route('POST', '/api/ai-test', async (req, res, p, q, body) => {
-  json(res, 200, await testConnection(body || {}));
+  try {
+    json(res, 200, await testConnection(body || {}));
+  } catch (e) {
+    json(res, 400, { error: e.message });
+  }
 });
 
 route('GET', '/api/repos/([^/]+)/reflog', async (req, res, p) => {
@@ -212,7 +220,7 @@ route('GET', '/api/repos/([^/]+)/reflog', async (req, res, p) => {
 });
 
 route('POST', '/api/repos/([^/]+)/undo', async (req, res, p, q, body) => {
-  if (body.confirm !== true) throw new Error('回退操作需要确认');
+  if (body.confirm !== true) throw bad(t('回退操作需要确认'));
   await withRepo(p[0], (cwd) => G.undoTo(cwd, body.sha));
   json(res, 200, { ok: true });
 });
@@ -222,13 +230,13 @@ route('GET', '/api/repos/([^/]+)/worktrees', async (req, res, p) => {
 });
 
 route('POST', '/api/repos/([^/]+)/worktrees', async (req, res, p, q, body) => {
-  if (!body.path || !body.branch) throw new Error('缺少路径或分支');
+  if (!body.path || !body.branch) throw bad(t('缺少路径或分支'));
   await withRepo(p[0], (cwd) => G.addWorktree(cwd, body.path, body.branch, { newBranch: !!body.newBranch, from: body.from }));
   json(res, 200, { ok: true });
 });
 
 route('DELETE', '/api/repos/([^/]+)/worktrees', async (req, res, p, q) => {
-  if (q.get('confirm') !== '1') throw new Error('移除工作区需要确认');
+  if (q.get('confirm') !== '1') throw bad(t('移除工作区需要确认'));
   await withRepo(p[0], (cwd) => G.removeWorktree(cwd, q.get('path'), q.get('force') === '1'));
   json(res, 200, { ok: true });
 });
@@ -258,8 +266,8 @@ route('GET', '/api/fs/list', async (req, res, p, q) => {
   try {
     entries = await fs.readdir(target, { withFileTypes: true });
   } catch (e) {
-    if (e.code === 'ENOENT') throw new Error('目录不存在');
-    if (e.code === 'EACCES' || e.code === 'EPERM') throw new Error('无权限访问该目录（macOS 隐私授权可能未允许）');
+    if (e.code === 'ENOENT') throw bad(t('目录不存在'));
+    if (e.code === 'EACCES' || e.code === 'EPERM') throw bad(t('无权限访问该目录（macOS 隐私授权可能未允许）'));
     throw e;
   }
   const names = entries.filter((e) => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.')).map((e) => e.name).sort();
@@ -277,9 +285,10 @@ route('GET', '/api/fs/list', async (req, res, p, q) => {
 });
 
 route('PUT', '/api/settings', async (req, res, p, q, body) => {
-  const allowed = ['theme', 'aiBaseUrl', 'aiApiKey', 'aiModel', 'logAll'];
+  const allowed = ['theme', 'lang', 'aiBaseUrl', 'aiApiKey', 'aiModel', 'logAll'];
   const patch = {};
   for (const k of allowed) if (k in body) patch[k] = body[k];
+  if (patch.lang) setLang(patch.lang);
   json(res, 200, await store.saveSettings(patch));
 });
 
@@ -311,15 +320,16 @@ const server = http.createServer(async (req, res) => {
           return;
         }
       }
-      json(res, 404, { error: '接口不存在' });
+      json(res, 404, { error: t('接口不存在') });
       return;
     }
     await serveStatic(req, res, u.pathname);
   } catch (e) {
-    json(res, e instanceof G.GitError ? 400 : 500, { error: e.message || '服务器内部错误' });
+    json(res, e instanceof G.GitError || e.http ? e.http || 400 : 500, { error: e.message || t('服务器内部错误') });
   }
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`Banyan Git 客户端已启动: http://${HOST}:${PORT}`);
+server.listen(PORT, HOST, async () => {
+  setLang((await store.getSettings()).lang);
+  console.log(t('Banyan Git 客户端已启动: {0}', `http://${HOST}:${PORT}`));
 });

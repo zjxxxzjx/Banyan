@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { esc, toast, confirmModal, pill } from '../util.js';
 import { icon } from '../icons.js';
+import { t } from '../i18n.js';
 import { renderDiff } from '../diff.js';
 
 function statusLetter(f) {
@@ -18,7 +19,7 @@ function fileRow(f, staged, selected) {
       <input type="checkbox" ${staged ? 'checked' : ''} data-role="stage-check">
       <span class="file-status fs-${esc(letter)}">${esc(letter)}</span>
       <span class="file-path" title="${esc(f.origPath ? f.origPath + ' → ' + f.path : f.path)}">${esc(f.path)}</span>
-      ${!staged ? `<button class="icon-btn row-action" data-role="discard" title="丢弃更改">↺</button>` : ''}
+      ${!staged ? `<button class="icon-btn row-action" data-role="discard" title="${t('丢弃更改')}">↺</button>` : ''}
     </div>`;
 }
 
@@ -34,53 +35,53 @@ export function render(state) {
   if (conflicted.length) {
     sections += `
       <div>
-        <div class="file-section-head" style="color:var(--danger)">${icon('alert', 13, 2)} 合并冲突 <span class="count">${conflicted.length}</span></div>
+        <div class="file-section-head" style="color:var(--danger)">${icon('alert', 13, 2)} ${t('合并冲突')} <span class="count">${conflicted.length}</span></div>
         ${conflicted.map((f) => fileRow(f, false, sel)).join('')}
       </div>`;
   }
   sections += `
     <div>
-      <div class="file-section-head">已暂存 <span class="count">${staged.length}</span>
-        ${staged.length ? '<span class="sec-actions"><button class="btn sm ghost" data-act="unstage-all">全部取消</button></span>' : ''}
+      <div class="file-section-head">${t('已暂存')} <span class="count">${staged.length}</span>
+        ${staged.length ? '<span class="sec-actions"><button class="btn sm ghost" data-act="unstage-all">' + t('全部取消') + '</button></span>' : ''}
       </div>
-      ${staged.length ? staged.map((f) => fileRow(f, true, sel)).join('') : '<div class="faint" style="padding:4px 8px;font-size:12px">暂无已暂存文件</div>'}
+      ${staged.length ? staged.map((f) => fileRow(f, true, sel)).join('') : '<div class="faint" style="padding:4px 8px;font-size:12px">' + t('暂无已暂存文件') + '</div>'}
     </div>
     <div>
-      <div class="file-section-head">更改 <span class="count">${unstaged.length}</span>
+      <div class="file-section-head">${t('更改')} <span class="count">${unstaged.length}</span>
         ${unstaged.length ? `<span class="sec-actions">
-          <button class="btn sm ghost" data-act="stage-all">全部暂存</button>
-          <button class="btn sm ghost" data-act="discard-all" style="color:var(--danger)">全部丢弃</button>
+          <button class="btn sm ghost" data-act="stage-all">${t('全部暂存')}</button>
+          <button class="btn sm ghost" data-act="discard-all" style="color:var(--danger)">${t('全部丢弃')}</button>
         </span>` : ''}
       </div>
-      ${unstaged.length ? unstaged.map((f) => fileRow(f, false, sel)).join('') : '<div class="faint" style="padding:4px 8px;font-size:12px">工作区干净</div>'}
+      ${unstaged.length ? unstaged.map((f) => fileRow(f, false, sel)).join('') : '<div class="faint" style="padding:4px 8px;font-size:12px">' + t('工作区干净') + '</div>'}
     </div>`;
 
   const canCommit = (staged.length > 0 || state.amend) && !state.busy.commit;
-  const commitLabel = state.amend ? '修补提交 (amend)' : `提交${staged.length ? ` · ${staged.length} 个文件` : ''}`;
+  const commitLabel = state.amend ? t('修补提交 (amend)') : t('提交') + (staged.length ? t(' · {0} 个文件', staged.length) : '');
 
   const diffHeader = sel
     ? `<span class="diff-file">${esc(sel.path)}</span>
-       <span class="badge-ref">${sel.untracked ? '新文件' : sel.staged ? '已暂存' : '未暂存'}</span>`
-    : '<span class="faint">未选择文件</span>';
+       <span class="badge-ref">${sel.untracked ? t('新文件') : sel.staged ? t('已暂存') : t('未暂存')}</span>`
+    : '<span class="faint">' + t('未选择文件') + '</span>';
 
   return `
     <div class="changes-layout">
       <div class="changes-left">
         <div class="file-sections">${sections}</div>
         <div class="commit-box">
-          <textarea id="commit-msg" placeholder="提交信息（feat/fix/docs…: 描述）">${esc(state.commitMsg)}</textarea>
+          <textarea id="commit-msg" placeholder="${t('提交信息（feat/fix/docs…: 描述）')}">${esc(state.commitMsg)}</textarea>
           <div class="commit-actions">
-            <label class="check"><input type="checkbox" id="amend-check" ${state.amend ? 'checked' : ''}> 修补上次提交 (amend)</label>
-            <button class="btn sm ai-btn" data-act="ai" ${state.busy.ai ? 'disabled' : ''}>${state.busy.ai ? '<span class="spinner"></span>' : icon('sparkles', 13)} AI 生成</button>
+            <label class="check"><input type="checkbox" id="amend-check" ${state.amend ? 'checked' : ''}> ${t('修补上次提交 (amend)')}</label>
+            <button class="btn sm ai-btn" data-act="ai" ${state.busy.ai ? 'disabled' : ''}>${state.busy.ai ? '<span class="spinner"></span>' : icon('sparkles', 13)} ${t('AI 生成')}</button>
           </div>
           <div class="commit-actions">
-            ${pill(state.busy.commit ? '提交中…' : commitLabel, { attrs: `data-act="commit" ${canCommit ? '' : 'disabled'}`, ic: 'check' })}
+            ${pill(state.busy.commit ? t('提交中…') : commitLabel, { attrs: `data-act="commit" ${canCommit ? '' : 'disabled'}`, ic: 'check' })}
           </div>
         </div>
       </div>
       <div class="diff-pane ${sel ? 'has-sel' : ''}">
         <div class="diff-header">${diffHeader}</div>
-        <div class="diff-body">${sel ? (state.busy.diff ? '<div class="empty center"><span class="spinner"></span></div>' : renderDiff(state.diffText)) : `<div class="empty"><div class="micro">[Diff] No file selected</div><div class="empty-word">Select.</div><div class="empty-desc">左侧勾选文件即可暂存，点击文件名查看具体改动。</div></div>`}</div>
+        <div class="diff-body">${sel ? (state.busy.diff ? '<div class="empty center"><span class="spinner"></span></div>' : renderDiff(state.diffText)) : `<div class="empty"><div class="micro">[Diff] No file selected</div><div class="empty-word">Select.</div><div class="empty-desc">${t('左侧勾选文件即可暂存，点击文件名查看具体改动。')}</div></div>`}</div>
       </div>
     </div>`;
 }
@@ -108,13 +109,13 @@ export function bind(root, ctx) {
     });
     row.querySelector('[data-role="discard"]')?.addEventListener('click', () => {
       confirmModal({
-        title: '丢弃更改',
-        message: `确定丢弃 <b class="mono">${esc(path)}</b> 的${untracked ? '新文件' : '未暂存更改'}吗？<br>此操作不可撤销。`,
-        confirmLabel: '丢弃', danger: true,
+        title: t('丢弃更改'),
+        message: t('确定丢弃 <b class="mono">{0}</b> 的{1}吗？<br>此操作不可撤销。', esc(path), untracked ? t('新文件') : t('未暂存更改')),
+        confirmLabel: t('丢弃'), danger: true,
         onConfirm: async () => {
           try {
             await api.discard(id, untracked ? [] : [path], untracked ? [path] : []);
-            toast('已丢弃', 'success');
+            toast(t('已丢弃'), 'success');
             await ctx.refresh();
           } catch (err) { toast(err.message, 'error'); }
         },
@@ -135,13 +136,13 @@ export function bind(root, ctx) {
   act('discard-all', () => {
     const files = state.status.files.filter((f) => f.untracked || (!f.conflicted && f.y !== '.'));
     confirmModal({
-      title: '丢弃全部更改',
-      message: `将丢弃 <b>${files.length}</b> 个文件的未暂存更改（含新文件），不可撤销。确定吗？`,
-      confirmLabel: '全部丢弃', danger: true,
+      title: t('丢弃全部更改'),
+      message: t('将丢弃 <b>{0}</b> 个文件的未暂存更改（含新文件），不可撤销。确定吗？', files.length),
+      confirmLabel: t('全部丢弃'), danger: true,
       onConfirm: async () => {
         try {
           await api.discard(id, files.filter((f) => !f.untracked).map((f) => f.path), files.filter((f) => f.untracked).map((f) => f.path));
-          toast('已丢弃全部更改', 'success');
+          toast(t('已丢弃全部更改'), 'success');
           await ctx.refresh();
         } catch (err) { toast(err.message, 'error'); }
       },
@@ -160,20 +161,20 @@ export function bind(root, ctx) {
     try {
       const { message } = await api.aiCommit(id);
       state.commitMsg = message;
-      toast('AI 提交信息已生成', 'success');
+      toast(t('AI 提交信息已生成'), 'success');
     } catch (err) { toast(err.message, 'error'); }
     state.busy.ai = false; ctx.renderAll();
   });
 
   act('commit', async () => {
     const message = state.commitMsg.trim();
-    if (!message) { toast('请填写提交信息', 'error'); return; }
+    if (!message) { toast(t('请填写提交信息'), 'error'); return; }
     state.busy.commit = true; ctx.renderAll();
     try {
       await api.commit(id, message, state.amend);
       state.commitMsg = '';
       state.amend = false;
-      toast('提交成功', 'success');
+      toast(t('提交成功'), 'success');
       await ctx.refresh();
     } catch (err) { toast(err.message, 'error'); }
     state.busy.commit = false; ctx.renderAll();

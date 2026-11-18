@@ -43,10 +43,8 @@ Banyan 即榕树：一根主干垂下气生根、落地成新干，「独木成�
 
 ```bash
 # 1. 前置：Node.js >= 18（实测 23）、Rust stable（实测 1.100）
-# 2. 按目标平台放置官方 Node 二进制作为 sidecar：
-#    desktop/src-tauri/binaries/node-aarch64-apple-darwin      (Apple Silicon)
-#    desktop/src-tauri/binaries/node-x86_64-apple-darwin       (Intel)
-#    desktop/src-tauri/binaries/node-x86_64-pc-windows-msvc.exe (Windows，规划中)
+# 2. 拉取桌面壳所需的官方 Node sidecar 二进制：
+bash scripts/fetch-sidecar.sh          # 放置 desktop/src-tauri/binaries/node-<target-triple>
 cd desktop
 npm install
 npm run build        # → src-tauri/target/release/bundle/dmg/Banyan_<ver>_aarch64.dmg
@@ -64,6 +62,16 @@ xattr -cr /Applications/Banyan.app
 ```
 
 Developer ID 签名与公证的 Release 已列入路线图。
+
+### 每次更新后重复弹 macOS 隐私授权
+
+macOS 将文件夹访问授权（桌面 / 文稿 / 下载）绑定到应用签名指纹。ad-hoc 签名每次构建都变化，因此每个新版本都会就仓库所在文件夹询问一次授权——这是预期行为而非死循环：每个版本允许一次即可。自签名稳定身份或公证的 Developer ID 包可消除重复询问（路线图）。
+
+## 文档
+
+- [CHANGELOG.md](CHANGELOG.md) — 版本历史
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 分层、sidecar 生命周期、提交图算法、签名
+- [CONTRIBUTING.md](CONTRIBUTING.md) — 贡献指南
 
 ## 开发（Web 模式）
 

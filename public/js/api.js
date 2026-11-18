@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 async function request(method, url, body) {
   const resp = await fetch(url, {
     method,
@@ -5,7 +7,7 @@ async function request(method, url, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(data.error || `请求失败 (${resp.status})`);
+  if (!resp.ok) throw new Error(data.error || t('请求失败 ({0})', resp.status));
   return data;
 }
 

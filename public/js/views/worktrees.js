@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { esc, toast, confirmModal, pill } from '../util.js';
 import { icon } from '../icons.js';
+import { t as tr } from '../i18n.js';
 
 const COLS = '44px minmax(0,2fr) minmax(0,1.2fr) 90px 180px';
 
@@ -13,24 +14,24 @@ export function render(state) {
     <div class="page">
       <div class="page-label micro"><b>[04]</b> Worktrees — ${trees.length} entries</div>
       <div class="page-head">
-        <div class="page-title display">并行工作区</div>
+        <div class="page-title display">${tr('并行工作区')}</div>
       </div>
-      <div class="page-desc">同一仓库的多个工作目录，各自独立分支、互不干扰——不用频繁 stash / 切分支。添加后可把目录作为新仓库加入 Banyan 并行开发。</div>
+      <div class="page-desc">${tr('同一仓库的多个工作目录，各自独立分支、互不干扰——不用频繁 stash / 切分支。添加后可把目录作为新仓库加入 Banyan 并行开发。')}</div>
       <div class="form-card" style="border-top:none;padding-top:0;margin-bottom:28px">
         <div class="form-row">
           <div class="form-field" style="flex:1.4;min-width:240px">
-            <label>Directory / 工作区目录</label>
+            <label>${tr('Directory / 工作区目录')}</label>
             <input type="text" id="wt-path" placeholder="${esc(suggestPath)}">
           </div>
           <div class="form-field" style="flex:1;min-width:160px">
-            <label>Branch / 分支名</label>
+            <label>${tr('Branch / 分支名')}</label>
             <input type="text" id="wt-branch" placeholder="feature/xxx">
           </div>
         </div>
         <div class="form-row">
-          <label class="check"><input type="checkbox" id="wt-new" checked> 创建新分支（基于当前 HEAD）</label>
+          <label class="check"><input type="checkbox" id="wt-new" checked> ${tr('创建新分支（基于当前 HEAD）')}</label>
           <span style="flex:1"></span>
-          ${pill('添加工作区', { attrs: 'data-act="wt-add"', ic: 'plus' })}
+          ${pill(tr('添加工作区'), { attrs: 'data-act="wt-add"', ic: 'plus' })}
         </div>
       </div>
       <div class="idx">
@@ -41,11 +42,11 @@ export function render(state) {
           <div class="idx-row" style="grid-template-columns:${COLS}">
             <span class="idx-no">${String(i + 1).padStart(2, '0')}</span>
             <span class="idx-main" title="${esc(t.path)}">${esc(t.path.split('/').pop())}${t.main ? ' <span class="badge-ref head">main</span>' : ''}${isCurrent(t) && !t.main ? ' <span class="badge-ref head">current</span>' : ''}${t.detached ? ' <span class="badge-ref">detached</span>' : ''}</span>
-            <span class="idx-sub idx-hide-m">${esc(t.branch || '(游离)')}</span>
+            <span class="idx-sub idx-hide-m">${esc(t.branch || tr('(游离)'))}</span>
             <span class="idx-mono idx-hide-m">${(t.sha || '').slice(0, 7)}</span>
             <span class="idx-actions">
-              ${!t.main ? `<button class="btn" data-act="wt-open" data-path="${esc(t.path)}">打开</button>
-              <button class="btn danger" data-act="wt-remove" data-path="${esc(t.path)}">移除</button>` : '<span class="idx-mono">primary</span>'}
+              ${!t.main ? `<button class="btn" data-act="wt-open" data-path="${esc(t.path)}">${tr('打开')}</button>
+              <button class="btn danger" data-act="wt-remove" data-path="${esc(t.path)}">${tr('移除')}</button>` : '<span class="idx-mono">primary</span>'}
             </span>
           </div>`).join('')}
       </div>
@@ -76,10 +77,10 @@ export function bind(root, ctx) {
     const wtPath = root.querySelector('#wt-path').value.trim();
     const branch = root.querySelector('#wt-branch').value.trim();
     const newBranch = root.querySelector('#wt-new').checked;
-    if (!wtPath || !branch) { toast('请填写目录和分支名', 'error'); return; }
+    if (!wtPath || !branch) { toast(tr('请填写目录和分支名'), 'error'); return; }
     try {
       await api.addWorktree(id, wtPath, branch, newBranch);
-      toast('工作区已创建', 'success');
+      toast(tr('工作区已创建'), 'success');
       await ctx.refresh();
     } catch (err) { toast(err.message, 'error'); }
   });
@@ -89,28 +90,28 @@ export function bind(root, ctx) {
       const repo = await api.addRepo(e.currentTarget.dataset.path);
       await ctx.loadRepos();
       ctx.selectRepo(repo.id);
-      toast('已作为仓库打开', 'success');
+      toast(tr('已作为仓库打开'), 'success');
     } catch (err) { toast(err.message, 'error'); }
   }));
 
   root.querySelectorAll('[data-act="wt-remove"]').forEach((b) => b.addEventListener('click', (e) => {
     const wtPath = e.currentTarget.dataset.path;
     confirmModal({
-      title: '移除工作区',
-      message: `移除 <b class="mono">${esc(wtPath)}</b>？目录将被删除（有未提交改动时会失败，可强制移除）。`,
-      confirmLabel: '移除', danger: true,
+      title: tr('移除工作区'),
+      message: tr('移除 <b class="mono">{0}</b>？目录将被删除（有未提交改动时会失败，可强制移除）。', esc(wtPath)),
+      confirmLabel: tr('移除'), danger: true,
       onConfirm: async () => {
         try {
           await api.removeWorktree(id, wtPath, false);
-          toast('工作区已移除', 'success');
+          toast(tr('工作区已移除'), 'success');
           await afterRemove(wtPath);
         } catch (err) {
           confirmModal({
-            title: '移除失败',
-            message: `${esc(err.message)}<br>强制移除会丢弃其中未提交的改动，继续吗？`,
-            confirmLabel: '强制移除', danger: true,
+            title: tr('移除失败'),
+            message: tr('{0}<br>强制移除会丢弃其中未提交的改动，继续吗？', esc(err.message)),
+            confirmLabel: tr('强制移除'), danger: true,
             onConfirm: async () => {
-              try { await api.removeWorktree(id, wtPath, true); toast('已强制移除', 'success'); await afterRemove(wtPath); }
+              try { await api.removeWorktree(id, wtPath, true); toast(tr('已强制移除'), 'success'); await afterRemove(wtPath); }
               catch (e2) { toast(e2.message, 'error'); }
             },
           });

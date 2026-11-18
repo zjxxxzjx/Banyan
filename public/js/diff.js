@@ -1,10 +1,11 @@
 import { esc } from './util.js';
 import { icon } from './icons.js';
+import { t } from './i18n.js';
 
 // 解析 unified diff 为带行号的 HTML
 export function renderDiff(text) {
   if (!text || !text.trim()) {
-    return '<div class="empty"><div class="empty-icon">∅</div><div class="empty-title">无差异内容</div></div>';
+    return '<div class="empty"><div class="empty-icon">∅</div><div class="empty-title">' + t('无差异内容') + '</div></div>';
   }
   const lines = text.split('\n');
   if (lines.length && lines[lines.length - 1] === '') lines.pop();

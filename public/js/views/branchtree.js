@@ -1,5 +1,6 @@
 import { esc } from '../util.js';
 import { icon } from '../icons.js';
+import { t } from '../i18n.js';
 
 // PyCharm 式分支树：HEAD / 本地 / 远程分组，斜杠前缀折叠文件夹，ahead/behind 徽章
 function nest(items) {
@@ -61,14 +62,14 @@ export function renderTree(state, { selected = null, actions = null } = {}) {
   const locals = state.branches.filter((b) => !b.remote);
   const remotes = state.branches.filter((b) => b.remote);
 
-  let html = `<div class="bt-head micro">HEAD（当前分支）</div>`;
+  let html = `<div class="bt-head micro">${t('HEAD（当前分支）')}</div>`;
   html += current
     ? rowHtml(current, current.name, 0, selected, actions)
-    : '<div class="faint bt-empty">初始提交前</div>';
+    : '<div class="faint bt-empty">' + t('初始提交前') + '</div>';
 
   const localNode = nest(locals.map((b) => ({ label: b.name, b })));
-  html += groupHtml('local', '本地', locals.length, 0, collapsed('local'),
-    renderNode(localNode, 'local', 1, state, selected, actions) || '<div class="faint bt-empty">暂无本地分支</div>');
+  html += groupHtml('local', t('本地'), locals.length, 0, collapsed('local'),
+    renderNode(localNode, 'local', 1, state, selected, actions) || '<div class="faint bt-empty">' + t('暂无本地分支') + '</div>');
 
   const remoteNames = state.remotes.map((r) => r.name);
   for (const rn of remoteNames) {
@@ -76,11 +77,11 @@ export function renderTree(state, { selected = null, actions = null } = {}) {
       .map((b) => ({ label: b.name.slice(rn.length + 1), b }));
     const key = `remote:${rn}`;
     html += groupHtml(key, rn, items.length, 0, collapsed(key),
-      renderNode(nest(items), key, 1, state, selected, actions) || '<div class="faint bt-empty">暂无远程分支</div>');
+      renderNode(nest(items), key, 1, state, selected, actions) || '<div class="faint bt-empty">' + t('暂无远程分支') + '</div>');
   }
   const orphan = remotes.filter((b) => !remoteNames.some((rn) => b.name.startsWith(`${rn}/`)));
   if (orphan.length) {
-    html += groupHtml('remote:other', '其他远程', orphan.length, 0, collapsed('remote:other'),
+    html += groupHtml('remote:other', t('其他远程'), orphan.length, 0, collapsed('remote:other'),
       renderNode(nest(orphan.map((b) => ({ label: b.name, b }))), 'remote:other', 1, state, selected, actions));
   }
   return html;

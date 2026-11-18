@@ -1,4 +1,5 @@
 import { api } from './api.js';
+import { t, setLang } from './i18n.js';
 import { esc, toast, promptModal, confirmModal, outputModal, pill, modal } from './util.js';
 import { icon, logoMark } from './icons.js';
 import * as changes from './views/changes.js';
@@ -98,7 +99,7 @@ async function refresh() {
     if (state.view === 'changes') await fetchSelectedDiff();
   } catch (err) {
     // 仓库被外部删除/移动时自动回落，避免界面卡在失效 id 上
-    if (/仓库不存在/.test(err.message)) {
+    if (/仓库不存在|Repository not found/.test(err.message)) {
       await loadRepos();
       const next = state.repos.find((r) => r.valid);
       state.repoId = next ? next.id : null;
@@ -180,8 +181,8 @@ async function remoteOp(op) {
   renderAll();
   try {
     const r = await api.remote(state.repoId, op);
-    const labels = { fetch: '抓取', pull: '拉取', push: '推送' };
-    if (r.ok) toast(`${labels[op]}完成`, 'success');
+    const labels = { fetch: t('抓取'), pull: t('拉取'), push: t('推送') };
+    if (r.ok) toast(t('{0}完成', labels[op]), 'success');
     else outputModal(labels[op], r.output, false);
     await refresh();
   } catch (err) { toast(err.message, 'error'); }
@@ -194,7 +195,7 @@ async function doAddRepo(p) {
     const repo = await api.addRepo(p);
     await loadRepos();
     ctx.selectRepo(repo.id);
-    toast(`已添加 ${repo.name}`, 'success');
+    toast(t('已添加 {0}', repo.name), 'success');
   } catch (err) { toast(err.message, 'error'); }
 }
 
@@ -202,23 +203,23 @@ async function doAddRepo(p) {
 function addRepoFlow() {
   let cur = null;
   const { mask } = modal({
-    title: '从本机文件夹添加',
+    title: t('从本机文件夹添加'),
     wide: true,
     body: `
       <div class="fs-quick" id="fs-quick"></div>
       <div class="fs-crumbs" id="fs-crumbs"></div>
       <div class="fs-list" id="fs-list"></div>
       <div class="form-field" style="margin-top:16px">
-        <label>或手动输入路径</label>
+        <label>${t('或手动输入路径')}</label>
         <input type="text" id="fs-manual" placeholder="/path/to/repo">
       </div>`,
     actions: [
-      { label: '取消', kind: 'ghost', onClick: (close) => close() },
+      { label: t('取消'), kind: 'ghost', onClick: (close) => close() },
       {
-        label: '添加此文件夹', kind: 'primary',
+        label: t('添加此文件夹'), kind: 'primary',
         onClick: async (close) => {
           const p = mask.querySelector('#fs-manual').value.trim() || cur;
-          if (!p) { toast('请选择一个目录', 'error'); return; }
+          if (!p) { toast(t('请选择一个目录'), 'error'); return; }
           close();
           await doAddRepo(p);
         },
@@ -236,7 +237,7 @@ function addRepoFlow() {
       const quick = mask.querySelector('#fs-quick');
       quick.innerHTML = [
         ['Home', d.home], ['Documents', `${d.home}/Documents`], ['Desktop', `${d.home}/Desktop`],
-        ['Downloads', `${d.home}/Downloads`], ['根目录', '/'],
+        ['Downloads', `${d.home}/Downloads`], [t('根目录'), '/'],
       ].map(([l, pp]) => `<button class="btn sm" data-fs="${esc(pp)}">${esc(l)}</button>`).join('');
       quick.querySelectorAll('[data-fs]').forEach((b) => b.addEventListener('click', () => load(b.dataset.fs)));
       const parts = d.path.split('/').filter(Boolean);
@@ -251,7 +252,7 @@ function addRepoFlow() {
         (d.parent ? `<div class="fs-row" data-fs="${esc(d.parent)}">${icon('folder-open', 14)} ..</div>` : '') +
         (d.dirs.map((dir) => `
           <div class="fs-row" data-fs="${esc(dir.path)}">${icon('folder', 14)} ${esc(dir.name)}${dir.isRepo ? '<span class="fs-git">GIT</span>' : ''}</div>`).join('')
-          || '<div class="faint" style="padding:12px">无子目录</div>');
+          || '<div class="faint" style="padding:12px">' + t('无子目录') + '</div>');
       listEl.querySelectorAll('[data-fs]').forEach((r) => r.addEventListener('click', () => load(r.dataset.fs)));
     } catch (err) {
       listEl.innerHTML = `<div class="faint" style="padding:12px">${esc(err.message)}</div>`;
@@ -266,25 +267,25 @@ function renderSidebar() {
   const changeCount = state.status?.files.length || 0;
   el.innerHTML = `
     <div class="side-section">
-      <div class="side-title">导航</div>
+      <div class="side-title">${t('导航')}</div>
       <div class="nav">
         ${Object.entries(VIEWS).filter(([key]) => key !== 'settings').map(([key, v], i) => `
           <div class="nav-item ${state.view === key ? 'active' : ''}" data-view="${key}">
-            <span class="nav-idx">${String(i + 1).padStart(2, '0')}</span><span>${v.label}</span>
+            <span class="nav-idx">${String(i + 1).padStart(2, '0')}</span><span>${t(v.label)}</span>
             ${key === 'changes' && changeCount ? `<span class="nav-count">${changeCount}</span>` : ''}
             <span class="nav-dot"></span>
           </div>`).join('')}
       </div>
     </div>
     <div class="side-section">
-      <div class="side-title">仓库 <button class="icon-btn" id="add-repo" title="添加仓库" style="width:22px;height:22px">${icon('plus', 13, 2)}</button></div>
+      <div class="side-title">${t('仓库')} <button class="icon-btn" id="add-repo" title="${t('添加仓库')}" style="width:22px;height:22px">${icon('plus', 13, 2)}</button></div>
       <div class="repo-list">
         ${state.repos.map((r) => `
           <div class="repo-item ${r.id === state.repoId ? 'active' : ''} ${r.valid ? '' : 'invalid'}" data-repo="${r.id}" title="${esc(r.path)}">
             ${icon('folder', 14)}
             <span class="repo-name">${esc(r.name)}</span>
-            <span class="repo-remove" data-remove="${r.id}" title="从列表移除">${icon('x', 12, 2)}</span>
-          </div>`).join('') || '<div class="faint" style="padding:10px 20px;font-size:11px">还没有仓库</div>'}
+            <span class="repo-remove" data-remove="${r.id}" title="${t('从列表移除')}">${icon('x', 12, 2)}</span>
+          </div>`).join('') || '<div class="faint" style="padding:10px 20px;font-size:11px">' + t('还没有仓库') + '</div>'}
       </div>
     </div>
     <div class="side-ghost">banyan</div>`;
@@ -297,9 +298,9 @@ function renderSidebar() {
         e.stopPropagation();
         const repo = state.repos.find((r) => r.id === removeId);
         confirmModal({
-          title: '移除仓库',
-          message: `从列表移除 <b>${esc(repo.name)}</b>？不会删除磁盘上的任何文件。`,
-          confirmLabel: '移除',
+          title: t('移除仓库'),
+          message: t('从列表移除 <b>{0}</b>？不会删除磁盘上的任何文件。', esc(repo.name)),
+          confirmLabel: t('移除'),
           onConfirm: async () => {
             await api.removeRepo(removeId);
             await loadRepos();
@@ -317,7 +318,7 @@ function renderSidebar() {
   });
   el.querySelectorAll('.nav-item').forEach((item) => {
     item.addEventListener('click', () => {
-      if (!state.repoId && item.dataset.view !== 'settings') { toast('请先添加仓库', 'info'); return; }
+      if (!state.repoId && item.dataset.view !== 'settings') { toast(t('请先添加仓库'), 'info'); return; }
       ctx.switchView(item.dataset.view);
     });
   });
@@ -327,28 +328,28 @@ function renderTopbar() {
   const el = $('#topbar');
   const repo = currentRepo();
   if (!repo) {
-    el.innerHTML = `<div class="topbar-logo">${logoMark(22)}<span class="logo-name">Banyan</span></div><span style="flex:1"></span><div class="topbar-right"><button class="icon-btn ${state.view === 'settings' ? 'active' : ''}" id="settings-btn" title="设置">${icon('settings', 16)}</button><button class="icon-btn" id="theme-toggle" title="切换主题">${icon(state.settings.theme === 'dark' ? 'sun' : 'moon', 16)}</button></div>`;
+    el.innerHTML = `<div class="topbar-logo">${logoMark(22)}<span class="logo-name">Banyan</span></div><span style="flex:1"></span><div class="topbar-right"><button class="icon-btn ${state.view === 'settings' ? 'active' : ''}" id="settings-btn" title="${t('设置')}">${icon('settings', 16)}</button><button class="icon-btn" id="theme-toggle" title="${t('切换主题')}">${icon(state.settings.theme === 'dark' ? 'sun' : 'moon', 16)}</button></div>`;
     el.querySelector('#theme-toggle').addEventListener('click', toggleTheme);
     el.querySelector('#settings-btn').addEventListener('click', () => ctx.switchView('settings'));
     return;
   }
   const st = state.status;
-  const branchLabel = st?.branch || (st?.detached ? `游离 ${(st.oid || '').slice(0, 7)}` : st ? '初始提交前' : '加载中');
+  const branchLabel = st?.branch || (st?.detached ? t('游离 {0}', (st.oid || '').slice(0, 7)) : st ? t('初始提交前') : t('加载中'));
   const busy = state.busy.remote;
   el.innerHTML = `
     <div class="topbar-logo">${logoMark(22)}<span class="logo-name">Banyan</span></div>
     <div class="topbar-title">${esc(repo.name)}</div>
-    <div class="branch-chip" id="branch-chip" title="点击查看分支">${icon('branch', 13, 2)} <span>${esc(branchLabel)}</span></div>
+    <div class="branch-chip" id="branch-chip" title="${t('点击查看分支')}">${icon('branch', 13, 2)} <span>${esc(branchLabel)}</span></div>
     <div class="sync-group">
-      <button class="btn sm" id="op-fetch" ${busy ? 'disabled' : ''}>${busy === 'fetch' ? '<span class="spinner"></span>' : icon('fetch', 13)} <span class="btn-label">抓取</span></button>
-      <button class="btn sm" id="op-pull" ${busy ? 'disabled' : ''}>${busy === 'pull' ? '<span class="spinner"></span>' : icon('pull', 13)} <span class="btn-label">拉取</span>${st?.behind ? ` <span class="badge">${st.behind}</span>` : ''}</button>
-      ${pill(`推送${st?.ahead ? ` ${st.ahead}` : ''}`, { cls: 'sm', attrs: `id="op-push" ${busy ? 'disabled' : ''}`, ic: 'push' })}
+      <button class="btn sm" id="op-fetch" ${busy ? 'disabled' : ''}>${busy === 'fetch' ? '<span class="spinner"></span>' : icon('fetch', 13)} <span class="btn-label">${t('抓取')}</span></button>
+      <button class="btn sm" id="op-pull" ${busy ? 'disabled' : ''}>${busy === 'pull' ? '<span class="spinner"></span>' : icon('pull', 13)} <span class="btn-label">${t('拉取')}</span>${st?.behind ? ` <span class="badge">${st.behind}</span>` : ''}</button>
+      ${pill(t('推送') + (st?.ahead ? ` ${st.ahead}` : ''), { cls: 'sm', attrs: `id="op-push" ${busy ? 'disabled' : ''}`, ic: 'push' })}
     </div>
     <div class="topbar-right">
       ${state.identity?.name ? `<span class="identity">${icon('user', 13)} ${esc(state.identity.name)}</span>` : ''}
-      <button class="icon-btn" id="refresh-btn" title="刷新">${icon('refresh', 15)}</button>
-      <button class="icon-btn ${state.view === 'settings' ? 'active' : ''}" id="settings-btn" title="设置">${icon('settings', 16)}</button>
-      <button class="icon-btn" id="theme-toggle" title="切换主题">${icon(state.settings.theme === 'dark' ? 'sun' : 'moon', 16)}</button>
+      <button class="icon-btn" id="refresh-btn" title="${t('刷新')}">${icon('refresh', 15)}</button>
+      <button class="icon-btn ${state.view === 'settings' ? 'active' : ''}" id="settings-btn" title="${t('设置')}">${icon('settings', 16)}</button>
+      <button class="icon-btn" id="theme-toggle" title="${t('切换主题')}">${icon(state.settings.theme === 'dark' ? 'sun' : 'moon', 16)}</button>
     </div>`;
   el.querySelector('#branch-chip').addEventListener('click', () => ctx.switchView('history'));
   el.querySelector('#op-fetch').addEventListener('click', () => remoteOp('fetch'));
@@ -374,9 +375,9 @@ function renderView() {
     el.innerHTML = `
       <div class="empty center" style="flex:1">
         <div class="micro">[Banyan] Local Git Client</div>
-        <div class="empty-word">独木成林.</div>
-        <div class="empty-desc">轻量、现代、中文的本地 Git 客户端。<br>从本机文件夹添加一个仓库开始，所有数据只保存在你的机器上。</div>
-        ${pill('添加仓库', { attrs: 'id="welcome-add" style="margin-top:10px"', ic: 'plus' })}
+        <div class="empty-word">${t('独木成林.')}</div>
+        <div class="empty-desc">${t('轻量、现代、中文的本地 Git 客户端。<br>从本机文件夹添加一个仓库开始，所有数据只保存在你的机器上。')}</div>
+        ${pill(t('添加仓库'), { attrs: 'id="welcome-add" style="margin-top:10px"', ic: 'plus' })}
       </div>`;
     el.querySelector('#welcome-add').addEventListener('click', addRepoFlow);
     return;
@@ -433,7 +434,9 @@ async function init() {
     document.getElementById('titlebar').addEventListener('dblclick', () => invoke('plugin:window|toggle_maximize'));
   }
   state.settings = await api.settings();
+  setLang(state.settings.lang);
   document.documentElement.dataset.theme = state.settings.theme || 'dark';
+  document.title = t('Banyan · Git 客户端');
   state.logAll = state.settings.logAll !== false;
   await loadRepos();
   if (state.repos.length) {
@@ -449,4 +452,4 @@ async function init() {
   });
 }
 
-init().catch((err) => toast(`初始化失败：${err.message}`, 'error'));
+init().catch((err) => toast(t('初始化失败：{0}', err.message), 'error'));

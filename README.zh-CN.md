@@ -21,6 +21,17 @@
 | --- | --- |
 | ![深色主题](docs/screenshot-dark.png) | ![浅色主题](docs/screenshot-light.png) |
 
+## 下载
+
+| 平台 | 状态 | 获取方式 |
+| --- | --- | --- |
+| macOS (Apple Silicon) | 已发布 | **[最新 Release (.dmg)](https://github.com/zjxxxzjx/Banyan/releases/latest)** |
+| macOS (Intel) | 源码构建 | 见[安装](#安装) |
+| Windows | **开发中** | 见[路线图](#路线图)；可通过 `Build other platforms` workflow 实验性自构 |
+| Linux | 实验性 | 通过 `Build other platforms` workflow 手动构建 |
+
+Release 的 `.dmg` 为 ad-hoc 签名（CI 不持有签名证书）：首启时 macOS 可能提示未验证开发者——右键→打开，或参见 [Gatekeeper 说明](#macos-gatekeeper-说明)。
+
 ## 为什么叫 Banyan
 
 Banyan 即榕树：一根主干垂下气生根、落地成新干，「独木成林」——正如一个仓库派生出多条分支。Banyan 希望把完整的 Git 操作与克制、编辑级的界面结合起来，并且**一切数据只留在你的机器上**。

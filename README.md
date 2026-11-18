@@ -21,6 +21,17 @@ English | [简体中文](README.zh-CN.md)
 | --- | --- |
 | ![Dark theme](docs/screenshot-dark.png) | ![Light theme](docs/screenshot-light.png) |
 
+## Download
+
+| Platform | Status | Get it |
+| --- | --- | --- |
+| macOS (Apple Silicon) | Released | **[Latest release (.dmg)](https://github.com/zjxxxzjx/Banyan/releases/latest)** |
+| macOS (Intel) | Build from source | see [Install](#install) |
+| Windows | **In development** | tracked in [Roadmap](#roadmap); experimental self-build via the `Build other platforms` workflow |
+| Linux | Experimental | manual build via the `Build other platforms` workflow |
+
+Released `.dmg` builds are ad-hoc signed (CI holds no signing certificate): on first launch macOS may ask you to confirm opening an unverified developer — right-click → Open, or see the [Gatekeeper note](#macos-gatekeeper-note).
+
 ## Why Banyan
 
 Banyan (榕树) is named after the banyan tree: one trunk sends down prop roots that become new trunks — *one tree becomes a forest*, just like branches growing from a single repository. It aims to combine full-featured Git operations with a calm, editorial-grade interface, while keeping **everything on your machine**.

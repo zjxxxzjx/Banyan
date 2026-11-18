@@ -50,7 +50,7 @@ Banyan 即榕树：一根主干垂下气生根、落地成新干，「独木成�
 
 ## 安装
 
-预编译 Release 规划中。当前请从源码构建（macOS 10.15+）：
+macOS (Apple Silicon) 预编译 `.dmg` 见[下载](#下载)。从源码构建（macOS 10.15+）：
 
 ```bash
 # 1. 前置：Node.js >= 18（实测 23）、Rust stable（实测 1.100）
@@ -82,17 +82,7 @@ macOS 将文件夹访问授权（桌面 / 文稿 / 下载）绑定到应用签�
 
 - [CHANGELOG.md](CHANGELOG.md) — 版本历史
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 分层、sidecar 生命周期、提交图算法、签名
-- [CONTRIBUTING.md](CONTRIBUTING.md) — 贡献指南
 
-## 开发（Web 模式）
-
-桌面壳与浏览器共用同一套服务与界面：
-
-```bash
-npm start            # node server.js → http://127.0.0.1:7788
-```
-
-零运行时依赖——后端仅用 Node 内置模块，前端为原生 ES modules。
 
 ## 配置
 
@@ -126,9 +116,6 @@ AI 提交信息为可选功能：在设置中填写任意 OpenAI 兼容 `POST /c
 - [ ] 英文界面
 - [ ] Windows / Linux 包与签名 Release
 
-## 贡献
-
-欢迎 Issue 与 PR。请使用 [Conventional Commits](https://www.conventionalcommits.org/)（`feat(scope): …`、`fix(scope): …`），并保持零运行时依赖约束。
 
 ## 许可
 

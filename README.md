@@ -50,7 +50,7 @@ Banyan (榕树) is named after the banyan tree: one trunk sends down prop roots 
 
 ## Install
 
-Prebuilt releases are planned. For now, build from source (macOS 10.15+):
+Prebuilt macOS (Apple Silicon) `.dmg`: see [Download](#download). To build from source (macOS 10.15+):
 
 ```bash
 # 1. Prerequisites: Node.js >= 18 (tested on 23), Rust stable (tested on 1.100)
@@ -82,17 +82,7 @@ macOS ties folder-access grants (Desktop / Documents / Downloads) to the app's c
 
 - [CHANGELOG.md](CHANGELOG.md) — version history
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — layers, sidecar lifecycle, graph algorithm, signing
-- [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
 
-## Development (web mode)
-
-The desktop shell and the browser share the same server and UI:
-
-```bash
-npm start            # node server.js → http://127.0.0.1:7788
-```
-
-Zero runtime dependencies — the backend uses only Node built-ins; the frontend is vanilla ES modules.
 
 ## Configuration
 
@@ -126,9 +116,6 @@ AI commit messages are optional: configure any OpenAI-compatible `POST /chat/com
 - [ ] English UI
 - [ ] Windows & Linux packages, signed releases
 
-## Contributing
-
-Issues and pull requests are welcome. Please use [Conventional Commits](https://www.conventionalcommits.org/) (`feat(scope): …`, `fix(scope): …`) and keep the zero-runtime-dependency constraint.
 
 ## License
 

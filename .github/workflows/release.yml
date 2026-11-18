@@ -18,12 +18,22 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Fetch Node sidecar
         run: bash scripts/fetch-sidecar.sh
-      - name: Use Developer ID signing when secrets provided
+      - name: Configure signing identity (Developer ID if secret provided, else ad-hoc)
         env:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          python3 - <<'EOF'
+          import json, os, pathlib
+          p = pathlib.Path('desktop/src-tauri/tauri.conf.json')
+          d = json.loads(p.read_text())
+          d['bundle']['macOS']['signingIdentity'] = os.environ.get('APPLE_SIGNING_IDENTITY') or '-'
+          p.write_text(json.dumps(d, indent=2))
+          EOF
+      - name: Import Developer ID certificate when provided
+        env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-        if: env.APPLE_SIGNING_IDENTITY != ''
+        if: env.APPLE_CERTIFICATE != ''
         run: |
           echo "$APPLE_CERTIFICATE" | base64 --decode > /tmp/cert.p12
           security create-keychain -p "" build.keychain
@@ -31,13 +41,6 @@ jobs:
           security unlock-keychain -p "" build.keychain
           security import /tmp/cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-          python3 - <<'EOF'
-          import json, os, pathlib
-          p = pathlib.Path('desktop/src-tauri/tauri.conf.json')
-          d = json.loads(p.read_text())
-          d['bundle']['macOS']['signingIdentity'] = os.environ['APPLE_SIGNING_IDENTITY']
-          p.write_text(json.dumps(d, indent=2))
-          EOF
       - name: Build dmg
         run: |
           cd desktop

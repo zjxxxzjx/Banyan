@@ -3,6 +3,11 @@
 All notable changes to Banyan are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.2.1] - 2026-11-18
+
+### Changed
+- Local macOS builds signed with a stable self-signed identity (`Banyan Local Signer`, certificate outside the repo) so TCC folder-access grants persist across rebuilds on the build machine; CI falls back to ad-hoc (or Developer ID when secrets provided).
+
 ## [0.2.0] - 2026-11-18
 
 ### Added

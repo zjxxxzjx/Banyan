@@ -1,6 +1,6 @@
 {
   "name": "banyan",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Banyan · 轻量现代中文 Git 客户端",

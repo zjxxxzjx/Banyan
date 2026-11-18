@@ -65,7 +65,7 @@ Notarized, Developer-ID-signed releases are on the roadmap.
 
 ### macOS privacy prompt repeats after each update
 
-macOS ties folder-access grants (Desktop / Documents / Downloads) to the app's code signature. Ad-hoc signatures change with every build, so each new version asks once for access to the folders your repositories live in. This is expected, not a loop: approve once per version. A stable self-signed identity or a notarized Developer ID build removes the repetition (roadmap).
+macOS ties folder-access grants (Desktop / Documents / Downloads) to the app's code signature. Local builds are signed with a stable self-signed identity (`Banyan Local Signer`; certificate kept outside the repository), so on the build machine the grant persists across rebuilds — approve once. CI and distributed builds remain ad-hoc signed (no certificate in CI), so each released version asks once on first launch; approve once per version. A notarized Developer ID build removes both repetitions (roadmap).
 
 ## Documentation
 

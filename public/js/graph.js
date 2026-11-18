@@ -59,7 +59,7 @@ const Y = (row) => row * ROW_H + ROW_H / 2;
 
 export function graphSvg(graph) {
   const parts = [];
-  // 先画连线：子提交圆点 → 父提交圆点（同 lane 为竖线，跨 lane 为平滑曲线）
+  // 连线贴泳道（PyCharm 语义）：子圆点 → 一行内汇入父泳道 → 沿泳道竖直下行至父圆点
   graph.rows.forEach((row, i) => {
     for (const e of row.edges) {
       const x0 = X(row.lane), y0 = Y(i);
@@ -67,9 +67,14 @@ export function graphSvg(graph) {
       const y1 = e.parentRow >= graph.rows.length ? graph.height : Y(e.parentRow);
       if (x0 === x1) {
         parts.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${e.color}" stroke-width="2"/>`);
-      } else {
+      } else if (e.parentRow === i + 1) {
         const dy = (y1 - y0) * 0.5;
         parts.push(`<path d="M ${x0} ${y0} C ${x0} ${y0 + dy}, ${x1} ${y1 - dy}, ${x1} ${y1}" fill="none" stroke="${e.color}" stroke-width="2"/>`);
+      } else {
+        const yj = Y(i + 1);
+        const dy = (yj - y0) * 0.5;
+        parts.push(`<path d="M ${x0} ${y0} C ${x0} ${y0 + dy}, ${x1} ${yj - dy}, ${x1} ${yj}" fill="none" stroke="${e.color}" stroke-width="2"/>`);
+        parts.push(`<line x1="${x1}" y1="${yj}" x2="${x1}" y2="${y1}" stroke="${e.color}" stroke-width="2"/>`);
       }
     }
   });

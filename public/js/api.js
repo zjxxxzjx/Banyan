@@ -22,6 +22,7 @@ export const api = {
   discard: (id, paths, untracked) => request('POST', `/api/repos/${id}/discard`, { paths, untracked, confirm: true }),
   commit: (id, message, amend) => request('POST', `/api/repos/${id}/commit`, { message, amend }),
   aiCommit: (id) => request('POST', `/api/repos/${id}/ai-commit`),
+  aiTest: (cfg) => request('POST', '/api/ai-test', cfg),
 
   log: (id, { limit = 200, skip = 0, all = true, branch = null }) =>
     request('GET', `/api/repos/${id}/log?limit=${limit}&skip=${skip}&all=${all ? 1 : 0}${branch ? `&branch=${encodeURIComponent(branch)}` : ''}`),

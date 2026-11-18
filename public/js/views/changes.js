@@ -70,7 +70,7 @@ export function render(state) {
         <div class="commit-box">
           <textarea id="commit-msg" placeholder="提交信息（feat/fix/docs…: 描述）">${esc(state.commitMsg)}</textarea>
           <div class="commit-actions">
-            <label class="check"><input type="checkbox" id="amend-check" ${state.amend ? 'checked' : ''}> amend</label>
+            <label class="check"><input type="checkbox" id="amend-check" ${state.amend ? 'checked' : ''}> 修补上次提交 (amend)</label>
             <button class="btn sm ai-btn" data-act="ai" ${state.busy.ai ? 'disabled' : ''}>${state.busy.ai ? '<span class="spinner"></span>' : icon('sparkles', 13)} AI 生成</button>
           </div>
           <div class="commit-actions">

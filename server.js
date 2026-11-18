@@ -5,7 +5,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import * as G from './lib/git.js';
 import * as store from './lib/store.js';
-import { generateCommitMessage } from './lib/ai.js';
+import { generateCommitMessage, testConnection } from './lib/ai.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // TCC 挂起的 stat 会占用 libuv 线程池，加大池避免浏览目录时耗尽
@@ -201,6 +201,10 @@ route('POST', '/api/repos/([^/]+)/push-branch', async (req, res, p, q, body) => 
   if (!body.name) throw new Error('缺少分支名');
   const r = await withRepo(p[0], (cwd) => G.pushBranch(cwd, body.name));
   json(res, 200, { ok: r.ok, output: r.stdout + r.stderr });
+});
+
+route('POST', '/api/ai-test', async (req, res, p, q, body) => {
+  json(res, 200, await testConnection(body || {}));
 });
 
 route('GET', '/api/repos/([^/]+)/reflog', async (req, res, p) => {

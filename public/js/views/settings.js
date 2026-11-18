@@ -80,16 +80,8 @@ export function bind(root, ctx) {
     btn.innerHTML = '<span class="spinner"></span> 测试中';
     try {
       state.settings = await api.saveSettings(readAi());
-      const base = state.settings.aiBaseUrl.replace(/\/+$/, '');
-      const url = base.endsWith('/chat/completions') ? base : `${base}/chat/completions`;
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(state.settings.aiApiKey ? { Authorization: `Bearer ${state.settings.aiApiKey}` } : {}) },
-        body: JSON.stringify({ model: state.settings.aiModel, messages: [{ role: 'user', content: '回复"连接成功"四个字' }], max_tokens: 20 }),
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      toast(`连接成功：${data.choices?.[0]?.message?.content || '(有响应)'}`, 'success');
+      const r = await api.aiTest(readAi());
+      toast(`连接成功：${r.sample}`, 'success');
     } catch (err) {
       toast(`连接失败：${err.message}`, 'error');
     }
